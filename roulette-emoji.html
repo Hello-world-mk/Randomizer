@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>アイコンルーレット</title>
+  <style>
+    :root {
+      --bg: #fffafc;
+      --panel: #fff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --pink: #ec4899;
+      --violet: #8b5cf6;
+      --gold: #fbbf24;
+      --cyan: #22d3ee;
+      --shadow: 0 18px 42px rgba(139, 92, 246, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #fdf2f8, #f5f3ff 100%);
+      font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic", sans-serif;
+      color: var(--text);
+    }
+
+    .app {
+      width: min(980px, calc(100% - 28px));
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(236,72,153,0.12);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    h1 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.8rem); }
+    .link { text-decoration: none; color: var(--pink); font-weight: 700; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .wheel-wrap {
+      position: relative;
+      width: min(420px, 74vw);
+      aspect-ratio: 1;
+      margin: 0 auto;
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 12px solid #fff;
+      box-shadow: 0 22px 42px rgba(139,92,246,0.18);
+      overflow: hidden;
+      transition: transform 5s cubic-bezier(0.12, 0.9, 0.22, 1);
+    }
+
+    .pointer {
+      position: absolute;
+      left: 50%;
+      top: -12px;
+      transform: translateX(-50%);
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 34px solid #111827;
+      z-index: 3;
+    }
+
+    .panel {
+      display: grid;
+      gap: 18px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      resize: vertical;
+      padding: 14px 16px;
+      border: 1px solid rgba(148,163,184,0.45);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.92);
+      font-size: 1rem;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    input[type="number"] {
+      width: 120px;
+      border: 1px solid rgba(148,163,184,0.45);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.92);
+      font-size: 1rem;
+    }
+
+    button {
+      border: none;
+      background: linear-gradient(135deg, var(--pink), var(--violet));
+      color: white;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(168,85,247,0.16);
+    }
+
+    .secondary {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      box-shadow: 0 12px 28px rgba(249,115,22,0.16);
+    }
+
+    .result {
+      min-height: 58px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: rgba(236,72,153,0.08);
+      display: flex;
+      align-items: center;
+      font-weight: 800;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      min-width: 62px;
+      min-height: 62px;
+      background: linear-gradient(180deg, #fff, #f5f3ff);
+      border: 1px solid rgba(168,85,247,0.15);
+      font-size: 1.8rem;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.8;
+      max-height: 180px;
+      overflow: auto;
+    }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .app { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top">
+      <h1>アイコンルーレット</h1>
+      <a class="link" href="index.html">一覧へ戻る</a>
+    </div>
+
+    <div class="grid">
+      <div class="wheel-wrap">
+        <div class="pointer" aria-hidden="true"></div>
+        <div id="wheel" class="wheel">
+          <canvas id="canvas" width="600" height="600"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div>
+          <label for="items">候補（絵文字やテキスト）</label>
+          <textarea id="items">🍔, 🍕, 🍣, 🍰, ☕, 🧁</textarea>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="preset">当たりインデックス</label>
+            <input id="preset" type="number" min="-1" value="-1" />
+          </div>
+          <button id="spin">回す</button>
+          <button id="redraw" class="secondary">再描画</button>
+        </div>
+
+        <div class="chips" id="chips"></div>
+
+        <div class="result" id="result">アイコンのルーレットです</div>
+
+        <div>
+          <label>候補一覧</label>
+          <ul id="list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const wheel = document.getElementById('wheel');
+    const itemsEl = document.getElementById('items');
+    const presetEl = document.getElementById('preset');
+    const resultEl = document.getElementById('result');
+    const listEl = document.getElementById('list');
+    const chipsEl = document.getElementById('chips');
+
+    function parseItems(text) {
+      return text.split(/[\n,]+/).map(v => v.trim()).filter(Boolean);
+    }
+
+    function drawWheel(items) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radius = Math.min(cx, cy) - 12;
+      const step = (Math.PI * 2) / items.length;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      items.forEach((item, index) => {
+        const start = index * step;
+        const end = start + step;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, start, end);
+        ctx.closePath();
+        ctx.fillStyle = `hsl(${(index * 330) / items.length + 20} 82% 68%)`;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.rotate(start + step / 2);
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '600 24px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(item, radius * 0.76, 8);
+        ctx.restore();
+      });
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 18, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function renderList(items) {
+      listEl.innerHTML = '';
+      items.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${index}. ${item}`;
+        listEl.appendChild(li);
+      });
+    }
+
+    function renderChips(items) {
+      chipsEl.innerHTML = '';
+      items.forEach(item => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = item;
+        chipsEl.appendChild(chip);
+      });
+    }
+
+    function refresh() {
+      const items = parseItems(itemsEl.value);
+      if (!items.length) {
+        listEl.innerHTML = '<li>なし</li>';
+        chipsEl.innerHTML = '';
+        resultEl.textContent = '項目を入力してください';
+        return;
+      }
+
+      drawWheel(items);
+      renderList(items);
+      renderChips(items);
+      const preset = Number(presetEl.value);
+      resultEl.textContent = Number.isInteger(preset) && preset >= 0 && preset < items.length
+        ? `設定中: ${items[preset]} を狙います`
+        : '設定なし: ランダムで決まります';
+      wheel.style.transition = 'none';
+      wheel.style.transform = 'rotate(0deg)';
+    }
+
+    document.getElementById('redraw').addEventListener('click', refresh);
+
+    document.getElementById('spin').addEventListener('click', () => {
+      const items = parseItems(itemsEl.value);
+      if (!items.length) {
+        resultEl.textContent = '項目を入力してください';
+        return;
+      }
+
+      const preset = Number(presetEl.value);
+      const winner = Number.isInteger(preset) && preset >= 0 && preset < items.length ? preset : Math.floor(Math.random() * items.length);
+      const segment = 360 / items.length;
+      const targetCenter = winner * segment + segment / 2;
+      const finalRotation = 360 * 8 + (360 - targetCenter);
+
+      wheel.style.transition = 'transform 5s cubic-bezier(0.12, 0.9, 0.22, 1)';
+      wheel.style.transform = `rotate(${finalRotation}deg)`;
+
+      setTimeout(() => {
+        resultEl.textContent = `当たり: ${items[winner]}`;
+      }, 4700);
+    });
+
+    refresh();
+  </script>
+</body>
+</html>

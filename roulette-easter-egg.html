@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>イースターエッグ割りルーレット</title>
+  <style>
+    :root {
+      --bg: #f4fff2;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #516174;
+      --ac1: #86efac;
+      --ac2: #fbbf24;
+      --ac3: #a78bfa;
+      --shadow: 0 20px 45px rgba(34,197,94,0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #f0fdf4 0%, #fafff5 100%);
+      font-family: "Segoe UI", "Hiragino Sans", "Yu Gothic", sans-serif;
+      color: var(--text);
+    }
+
+    .app {
+      width: min(1000px, calc(100% - 30px));
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(134, 239, 172, 0.2);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    h1 { margin: 0; font-size: clamp(1.8rem, 3vw, 2.7rem); }
+    .link { text-decoration: none; color: #166534; font-weight: 700; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 26px;
+      align-items: center;
+    }
+
+    .wheel {
+      position: relative;
+      width: min(420px, 72vw);
+      aspect-ratio: 1;
+      margin: 0 auto;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 12px solid #fff;
+      box-shadow: 0 24px 45px rgba(34,197,94,0.18);
+      transition: transform 5s cubic-bezier(0.12, 0.9, 0.22, 1);
+    }
+
+    .pointer {
+      position: absolute;
+      left: 50%;
+      top: -12px;
+      transform: translateX(-50%);
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 34px solid #1d4ed8;
+      z-index: 3;
+    }
+
+    .panel {
+      display: grid;
+      gap: 18px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      resize: vertical;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,0.45);
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.9);
+      font-size: 1rem;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    input[type="number"] {
+      width: 120px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.45);
+      padding: 10px 12px;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.9);
+    }
+
+    button {
+      border: none;
+      background: linear-gradient(135deg, #16a34a, #4ade80);
+      color: white;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 14px 28px rgba(34,197,94,0.18);
+    }
+
+    .secondary {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      box-shadow: 0 14px 28px rgba(249,115,22,0.15);
+    }
+
+    .result {
+      border-radius: 16px;
+      padding: 16px 18px;
+      min-height: 60px;
+      background: rgba(34,197,94,0.09);
+      display: flex;
+      align-items: center;
+      font-weight: 800;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.8;
+      max-height: 180px;
+      overflow: auto;
+    }
+
+    .eggs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 6px;
+    }
+
+    .egg {
+      width: 86px;
+      height: 110px;
+      border-radius: 52% 48% 50% 50% / 60% 60% 40% 40%;
+      background: linear-gradient(180deg, #ffffff, #f0fdf4);
+      border: 2px solid rgba(34,197,94,0.35);
+      display: grid;
+      place-items: center;
+      position: relative;
+      box-shadow: inset 0 -10px 14px rgba(34,197,94,0.12);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      color: #166534;
+      font-weight: 800;
+      text-align: center;
+      padding: 0 8px;
+      font-size: 0.7rem;
+    }
+
+    .egg::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+    }
+
+    .egg.cracked {
+      background: linear-gradient(180deg, #fef2f2, #fee2e2);
+      border-color: rgba(239,68,68,0.48);
+      transform: rotate(-12deg) scale(1.05);
+      box-shadow: 0 12px 18px rgba(239,68,68,0.15);
+      color: #991b1b;
+    }
+
+    .egg.cracked::after {
+      content: "裂けた！";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.25));
+      border-radius: inherit;
+      font-size: 0.75rem;
+      font-weight: 900;
+    }
+
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+      .app { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top">
+      <h1>イースターエッグ割りルーレット</h1>
+      <a class="link" href="index.html">一覧へ戻る</a>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div id="wheel" class="wheel">
+          <canvas id="canvas" width="600" height="600"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div>
+          <label for="items">卵の名前</label>
+          <textarea id="items">チョコ, プレゼント, キー, クッキー, マシュマロ, お菓子</textarea>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="preset">割る卵インデックス</label>
+            <input id="preset" type="number" min="-1" value="-1" />
+          </div>
+          <button id="spin">回す</button>
+          <button id="redraw" class="secondary">再描画</button>
+        </div>
+
+        <div class="result" id="result">卵を選ぶ準備中です</div>
+
+        <div>
+          <label>卵一覧</label>
+          <div class="eggs" id="eggs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const wheel = document.getElementById('wheel');
+    const itemsEl = document.getElementById('items');
+    const presetEl = document.getElementById('preset');
+    const resultEl = document.getElementById('result');
+    const eggsEl = document.getElementById('eggs');
+
+    function parseItems(text) {
+      return text.split(/[\n,]+/).map(v => v.trim()).filter(Boolean);
+    }
+
+    function drawWheel(items) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radius = Math.min(cx, cy) - 10;
+      const step = (Math.PI * 2) / items.length;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      items.forEach((item, index) => {
+        const start = index * step;
+        const end = start + step;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, start, end);
+        ctx.closePath();
+        ctx.fillStyle = `hsl(${(index * 320) / items.length + 140} 70% 75%)`;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.rotate(start + step / 2);
+        ctx.fillStyle = '#14532d';
+        ctx.font = '600 22px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(item, radius * 0.72, 8);
+        ctx.restore();
+      });
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 22, 0, Math.PI * 2);
+      ctx.fillStyle = '#fef3c7';
+      ctx.fill();
+      ctx.strokeStyle = '#facc15';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function renderEggs(items) {
+      eggsEl.innerHTML = '';
+      items.forEach((item, index) => {
+        const egg = document.createElement('div');
+        egg.className = 'egg';
+        egg.textContent = `${index}`;
+        egg.title = item;
+        eggsEl.appendChild(egg);
+      });
+    }
+
+    function refresh() {
+      const items = parseItems(itemsEl.value);
+      if (!items.length) {
+        eggsEl.innerHTML = '';
+        resultEl.textContent = '項目を入力してください';
+        return;
+      }
+
+      drawWheel(items);
+      renderEggs(items);
+      const preset = Number(presetEl.value);
+      if (Number.isInteger(preset) && preset >= 0 && preset < items.length) {
+        resultEl.textContent = `設定中: 卵 ${preset} が割れます`;
+      } else {
+        resultEl.textContent = '設定なし: ランダムで卵が選ばれます';
+      }
+
+      wheel.style.transition = 'none';
+      wheel.style.transform = 'rotate(0deg)';
+      eggsEl.querySelectorAll('.egg').forEach(egg => egg.classList.remove('cracked'));
+    }
+
+    document.getElementById('redraw').addEventListener('click', refresh);
+
+    document.getElementById('spin').addEventListener('click', () => {
+      const items = parseItems(itemsEl.value);
+      if (!items.length) {
+        resultEl.textContent = '項目を入力してください';
+        return;
+      }
+
+      const preset = Number(presetEl.value);
+      const winner = Number.isInteger(preset) && preset >= 0 && preset < items.length ? preset : Math.floor(Math.random() * items.length);
+      const segment = 360 / items.length;
+      const targetCenter = winner * segment + segment / 2;
+      const finalRotation = 360 * 8 + (360 - targetCenter);
+
+      wheel.style.transition = 'transform 5s cubic-bezier(0.12, 0.9, 0.22, 1)';
+      wheel.style.transform = `rotate(${finalRotation}deg)`;
+
+      setTimeout(() => {
+        const eggs = [...eggsEl.querySelectorAll('.egg')];
+        eggs.forEach((egg, index) => egg.classList.toggle('cracked', index === winner));
+        resultEl.textContent = `割れた卵: ${winner}. ${items[winner]}`;
+      }, 4700);
+    });
+
+    refresh();
+  </script>
+</body>
+</html>
